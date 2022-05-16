@@ -62,7 +62,9 @@ Shader "Roystan/Grass"
 	{
 
 		// Creating a tringle as output to vizualize the geometry shader
-		// Problem: the triangle is being rendered in screen space
+		// Problem 1: the triangle is being rendered in screen space
+		// Fix 1: Added UnityObjectToClipPos
+		// Problem 2: 
 		geometryOutput o;
 
 		//o.pos = float4(0.5, 0, 0, 1);
