@@ -73,12 +73,16 @@ Shader "Roystan/Grass"
 	struct geometryOutput
 	{
 		float4 pos : SV_POSITION;
+		// UV for the colors
+		float2 uv : TEXCOORD0;
 	};
 
-	geometryOutput VertexOutput(float3 pos)
+	// added UV for colors
+	geometryOutput VertexOutput(float3 pos, float2 uv)
 	{
 		geometryOutput o;
 		o.pos = UnityObjectToClipPos(pos);
+		o.uv = uv;
 		return o;
 	}
 
@@ -112,6 +116,7 @@ Shader "Roystan/Grass"
 			vTangent.z, vBinormal.z, vNormal.z
 			);
 
+
 		
 		/*geometryOutput o;
 
@@ -131,9 +136,9 @@ Shader "Roystan/Grass"
 		triStream.Append(o); */
 
 
-		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0))));
-		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0))));
-		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1))));
+		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0)), float2(0, 0)));
+		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0)), float2(1, 0)));
+		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1)), float2(0.5, 1)));
 		//triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 1, 0))));
 	}
 
@@ -163,9 +168,11 @@ Shader "Roystan/Grass"
 			float4 _BottomColor;
 			float _TranslucentGain;
 
-			float4 frag (float4 vertex : SV_POSITION, fixed facing : VFACE) : SV_Target
+			//float4 frag (float4 vertex : SV_POSITION, fixed facing : VFACE) : SV_Target
+			float4 frag(geometryOutput i, fixed facing : VFACE) : SV_Target // Added UV
             {	
-				return float4(1, 1, 1, 1);
+				//return float4(1, 1, 1, 1);
+				return lerp(_BottomColor, _TopColor, i.uv.y); //interpolating between top and bottom uv
             }
             ENDCG
         }
