@@ -59,6 +59,18 @@ Shader "Roystan/Grass"
 	[maxvertexcount(3)]
 	void geo(triangle float4 IN[3] : SV_POSITION, inout TriangleStream<geometryOutput> triStream)
 	{
+
+		// Creating a tringle as output to vizualize the geometry shader
+		geometryOutput o;
+
+		o.pos = float4(0.5, 0, 0, 1);
+		triStream.Append(o);
+
+		o.pos = float4(-0.5, 0, 0, 1);
+		triStream.Append(o);
+
+		o.pos = float4(0, 1, 0, 1);
+		triStream.Append(o);
 	}
 
 	ENDCG
