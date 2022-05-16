@@ -44,6 +44,23 @@ Shader "Roystan/Grass"
 	{
 		return UnityObjectToClipPos(vertex);
 	}
+
+	struct geometryOutput
+	{
+		float4 pos : SV_POSITION;
+	};
+
+	/*	Declare a geometry shader named geo.
+		Parameters: - triangle float4 IN[3] : SV_POSITION; input a triangle defined by 3 points
+					- TriangleStream<geometryOutput> triStream; output a stream of triangles with the geometryOutput structure
+					- [maxvertexcount(3)]; we will emit a max of 3 vertices
+		
+	*/ 
+	[maxvertexcount(3)]
+	void geo(triangle float4 IN[3] : SV_POSITION, inout TriangleStream<geometryOutput> triStream)
+	{
+	}
+
 	ENDCG
 
     SubShader
@@ -61,6 +78,7 @@ Shader "Roystan/Grass"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+			#pragma geometry geo // make sure the SubShader uses the geometry shader
 			#pragma target 4.6
             
 			#include "Lighting.cginc"
