@@ -42,7 +42,8 @@ Shader "Roystan/Grass"
 
 	float4 vert(float4 vertex : POSITION) : SV_POSITION
 	{
-		return UnityObjectToClipPos(vertex);
+		//return UnityObjectToClipPos(vertex);
+		return vertex;
 	}
 
 	struct geometryOutput
@@ -64,13 +65,16 @@ Shader "Roystan/Grass"
 		// Problem: the triangle is being rendered in screen space
 		geometryOutput o;
 
-		o.pos = float4(0.5, 0, 0, 1);
+		//o.pos = float4(0.5, 0, 0, 1);
+		o.pos = UnityObjectToClipPos(float4(0.5, 0, 0, 1));
 		triStream.Append(o);
 
-		o.pos = float4(-0.5, 0, 0, 1);
+		//o.pos = float4(-0.5, 0, 0, 1);
+		o.pos = UnityObjectToClipPos(float4(-0.5, 0, 0, 1));
 		triStream.Append(o);
 
-		o.pos = float4(0, 1, 0, 1);
+		//o.pos = float4(0, 1, 0, 1);
+		o.pos = UnityObjectToClipPos(float4(0, 1, 0, 1));
 		triStream.Append(o);
 	}
 
