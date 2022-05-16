@@ -61,6 +61,7 @@ Shader "Roystan/Grass"
 	{
 
 		// Creating a tringle as output to vizualize the geometry shader
+		// Problem: the triangle is being rendered in screen space
 		geometryOutput o;
 
 		o.pos = float4(0.5, 0, 0, 1);
