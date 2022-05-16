@@ -61,10 +61,26 @@ Shader "Roystan/Grass"
 		return vertex;
 	}
 
+	vertexOutput vert(vertexInput v)
+	{
+		vertexOutput o;
+		o.vertex = v.vertex;
+		o.normal = v.normal;
+		o.tangent = v.tangent;
+		return o;
+	}
+
 	struct geometryOutput
 	{
 		float4 pos : SV_POSITION;
 	};
+
+	geometryOutput VertexOutput(float3 pos)
+	{
+		geometryOutput o;
+		o.pos = UnityObjectToClipPos(pos);
+		return o;
+	}
 
 	/*	Declare a geometry shader named geo.
 		Parameters: - triangle float4 IN[3] : SV_POSITION; input a triangle defined by 3 points
@@ -73,7 +89,8 @@ Shader "Roystan/Grass"
 		
 	*/ 
 	[maxvertexcount(3)]
-	void geo(triangle float4 IN[3] : SV_POSITION, inout TriangleStream<geometryOutput> triStream)
+	//void geo(triangle float4 IN[3] : SV_POSITION, inout TriangleStream<geometryOutput> triStream)
+	void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triStream)
 	{
 
 		// Creating a tringle as output to vizualize the geometry shader
@@ -81,8 +98,22 @@ Shader "Roystan/Grass"
 		// Fix 1: Added UnityObjectToClipPos
 		// Problem 2: The positions we are assigning to the triangle's vertices are constant—they do not change for each input vertex— placing all the triangles atop one another.
 		// Fix 2: Added the pos offset for each triangle
-		float3 pos = IN[0];
-		geometryOutput o;
+		//float3 pos = IN[0];
+		float3 pos = IN[0].vertex;
+		float3 vNormal = IN[0].normal;
+		float4 vTangent = IN[0].tangent;
+		float3 vBinormal = cross(vNormal, vTangent) * vTangent.w;
+
+
+		// matrix to transform between tangent and local space
+		float3x3 tangentToLocal = float3x3(
+			vTangent.x, vBinormal.x, vNormal.x,
+			vTangent.y, vBinormal.y, vNormal.y,
+			vTangent.z, vBinormal.z, vNormal.z
+			);
+
+		
+		/*geometryOutput o;
 
 		//o.pos = float4(0.5, 0, 0, 1);
 		//o.pos = UnityObjectToClipPos(float4(0.5, 0, 0, 1));
@@ -97,7 +128,13 @@ Shader "Roystan/Grass"
 		//o.pos = float4(0, 1, 0, 1);
 		//o.pos = UnityObjectToClipPos(float4(0, 1, 0, 1));
 		o.pos = UnityObjectToClipPos(pos + float3(0, 1, 0));
-		triStream.Append(o);
+		triStream.Append(o); */
+
+
+		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0))));
+		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0))));
+		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1))));
+		//triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 1, 0))));
 	}
 
 	ENDCG
