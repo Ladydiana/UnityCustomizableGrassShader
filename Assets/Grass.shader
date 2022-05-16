@@ -64,19 +64,24 @@ Shader "Roystan/Grass"
 		// Creating a tringle as output to vizualize the geometry shader
 		// Problem 1: the triangle is being rendered in screen space
 		// Fix 1: Added UnityObjectToClipPos
-		// Problem 2: 
+		// Problem 2: The positions we are assigning to the triangle's vertices are constant—they do not change for each input vertex— placing all the triangles atop one another.
+		// Fix 2: Added the pos offset for each triangle
+		float3 pos = IN[0];
 		geometryOutput o;
 
 		//o.pos = float4(0.5, 0, 0, 1);
-		o.pos = UnityObjectToClipPos(float4(0.5, 0, 0, 1));
+		//o.pos = UnityObjectToClipPos(float4(0.5, 0, 0, 1));
+		o.pos = UnityObjectToClipPos(pos + float3(0.5, 0, 0));
 		triStream.Append(o);
 
 		//o.pos = float4(-0.5, 0, 0, 1);
-		o.pos = UnityObjectToClipPos(float4(-0.5, 0, 0, 1));
+		//o.pos = UnityObjectToClipPos(float4(-0.5, 0, 0, 1));
+		o.pos = UnityObjectToClipPos(pos + float3(-0.5, 0, 0));
 		triStream.Append(o);
 
 		//o.pos = float4(0, 1, 0, 1);
-		o.pos = UnityObjectToClipPos(float4(0, 1, 0, 1));
+		//o.pos = UnityObjectToClipPos(float4(0, 1, 0, 1));
+		o.pos = UnityObjectToClipPos(pos + float3(0, 1, 0));
 		triStream.Append(o);
 	}
 
