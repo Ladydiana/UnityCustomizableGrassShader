@@ -116,6 +116,11 @@ Shader "Roystan/Grass"
 			vTangent.z, vBinormal.z, vNormal.z
 			);
 
+		// For the random rotation
+		// use the input position pos as the random seed for our rotation. This way, every blade will get a different rotation, but it will be consistent between frames.
+		float3x3 facingRotationMatrix = AngleAxis3x3(rand(pos) * UNITY_TWO_PI, float3(0, 0, 1));
+		float3x3 transformationMatrix = mul(tangentToLocal, facingRotationMatrix);
+
 
 		
 		/*geometryOutput o;
@@ -136,10 +141,13 @@ Shader "Roystan/Grass"
 		triStream.Append(o); */
 
 
-		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0)), float2(0, 0)));
+		/*triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0)), float2(0, 0)));
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0)), float2(1, 0)));
-		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1)), float2(0.5, 1)));
+		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1)), float2(0.5, 1)));*/
 		//triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 1, 0))));
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0.5, 0, 0)), float2(0, 0)));
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(-0.5, 0, 0)), float2(1, 0)));
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, 1)), float2(0.5, 1)));
 	}
 
 	ENDCG
