@@ -6,11 +6,20 @@ Shader "Roystan/Grass"
         _TopColor("Top Color", Color) = (1,1,1,1)
 		_BottomColor("Bottom Color", Color) = (1,1,1,1)
 		_TranslucentGain("Translucent Gain", Range(0,1)) = 0.5
+		_BladeWidth("Blade Width", Float) = 0.05
+		_BladeWidthRandom("Blade Width Random", Float) = 0.02
+		_BladeHeight("Blade Height", Float) = 0.5
+		_BladeHeightRandom("Blade Height Random", Float) = 0.3
     }
 
 	CGINCLUDE
 	#include "UnityCG.cginc"
 	#include "Autolight.cginc"
+
+	float _BladeHeight;
+	float _BladeHeightRandom;
+	float _BladeWidth;
+	float _BladeWidthRandom;
 
 	// Simple noise function, sourced from http://answers.unity.com/answers/624136/view.html
 	// Extended discussion on this function can be found at the following link:
@@ -140,14 +149,23 @@ Shader "Roystan/Grass"
 		o.pos = UnityObjectToClipPos(pos + float3(0, 1, 0));
 		triStream.Append(o); */
 
+		//Width and Height of a blade
+		float height = (rand(pos.zyx) * 2 - 1) * _BladeHeightRandom + _BladeHeight;
+		float width = (rand(pos.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth;
 
 		/*triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0)), float2(0, 0)));
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0)), float2(1, 0)));
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1)), float2(0.5, 1)));*/
 		//triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 1, 0))));
+		/*//Random rotation
 		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0.5, 0, 0)), float2(0, 0)));
 		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(-0.5, 0, 0)), float2(1, 0)));
-		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, 1)), float2(0.5, 1)));
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, 1)), float2(0.5, 1)));*/
+
+		//Width and Height
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(width, 0, 0)), float2(0, 0)));
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(-width, 0, 0)), float2(1, 0)));
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, height)), float2(0.5, 1)));
 	}
 
 	ENDCG
