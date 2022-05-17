@@ -10,16 +10,14 @@ Shader "Roystan/Grass"
 		_BladeWidthRandom("Blade Width Random", Float) = 0.02
 		_BladeHeight("Blade Height", Float) = 0.5
 		_BladeHeightRandom("Blade Height Random", Float) = 0.3
+		_BendRotationRandom("Bend Rotation Random", Range(0, 1)) = 0.2
     }
 
 	CGINCLUDE
 	#include "UnityCG.cginc"
 	#include "Autolight.cginc"
 
-	float _BladeHeight;
-	float _BladeHeightRandom;
-	float _BladeWidth;
-	float _BladeWidthRandom;
+	
 
 	// Simple noise function, sourced from http://answers.unity.com/answers/624136/view.html
 	// Extended discussion on this function can be found at the following link:
@@ -95,6 +93,13 @@ Shader "Roystan/Grass"
 		return o;
 	}
 
+
+	float _BladeHeight;
+	float _BladeHeightRandom;
+	float _BladeWidth;
+	float _BladeWidthRandom;
+	float _BendRotationRandom;
+
 	/*	Declare a geometry shader named geo.
 		Parameters: - triangle float4 IN[3] : SV_POSITION; input a triangle defined by 3 points
 					- TriangleStream<geometryOutput> triStream; output a stream of triangles with the geometryOutput structure
@@ -117,6 +122,9 @@ Shader "Roystan/Grass"
 		float4 vTangent = IN[0].tangent;
 		float3 vBinormal = cross(vNormal, vTangent) * vTangent.w;
 
+		
+		float3x3 bendRotationMatrix = AngleAxis3x3(rand(pos.zzx) * _BendRotationRandom * UNITY_PI * 0.5, float3(-1, 0, 0));
+
 
 		// matrix to transform between tangent and local space
 		float3x3 tangentToLocal = float3x3(
@@ -128,8 +136,10 @@ Shader "Roystan/Grass"
 		// For the random rotation
 		// use the input position pos as the random seed for our rotation. This way, every blade will get a different rotation, but it will be consistent between frames.
 		float3x3 facingRotationMatrix = AngleAxis3x3(rand(pos) * UNITY_TWO_PI, float3(0, 0, 1));
-		float3x3 transformationMatrix = mul(tangentToLocal, facingRotationMatrix);
-
+		// With different direction
+		//float3x3 transformationMatrix = mul(tangentToLocal, facingRotationMatrix);
+		//With direction and bend
+		float3x3 transformationMatrix = mul(mul(tangentToLocal, facingRotationMatrix), bendRotationMatrix);
 
 		
 		/*geometryOutput o;
@@ -157,8 +167,8 @@ Shader "Roystan/Grass"
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0)), float2(1, 0)));
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1)), float2(0.5, 1)));*/
 		//triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 1, 0))));
-		/*//Random rotation
-		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0.5, 0, 0)), float2(0, 0)));
+		//Random rotation
+		/*triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0.5, 0, 0)), float2(0, 0)));
 		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(-0.5, 0, 0)), float2(1, 0)));
 		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, 1)), float2(0.5, 1)));*/
 
