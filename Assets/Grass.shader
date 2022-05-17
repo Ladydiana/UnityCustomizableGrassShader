@@ -11,11 +11,13 @@ Shader "Roystan/Grass"
 		_BladeHeight("Blade Height", Float) = 0.5
 		_BladeHeightRandom("Blade Height Random", Float) = 0.3
 		_BendRotationRandom("Bend Rotation Random", Range(0, 1)) = 0.2
+		_TessellationUniform("Tessellation Uniform", Range(1, 64)) = 1
     }
 
 	CGINCLUDE
 	#include "UnityCG.cginc"
 	#include "Autolight.cginc"
+	#include "Shaders/CustomTessellation.cginc" // for the tesselation
 
 	
 
@@ -47,6 +49,7 @@ Shader "Roystan/Grass"
 			);
 	}
 
+	/* Removed because they are defined in the CustomTessellation.cginc
 	struct vertexInput
 	{
 		float4 vertex : POSITION;
@@ -75,7 +78,7 @@ Shader "Roystan/Grass"
 		o.normal = v.normal;
 		o.tangent = v.tangent;
 		return o;
-	}
+	}*/
 
 	struct geometryOutput
 	{
@@ -197,6 +200,8 @@ Shader "Roystan/Grass"
             #pragma fragment frag
 			#pragma geometry geo // make sure the SubShader uses the geometry shader
 			#pragma target 4.6
+			#pragma hull hull
+			#pragma domain domain
             
 			#include "Lighting.cginc"
 
