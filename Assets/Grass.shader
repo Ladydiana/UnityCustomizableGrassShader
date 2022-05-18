@@ -20,7 +20,8 @@ Shader "Roystan/Grass"
 	CGINCLUDE
 	#include "UnityCG.cginc"
 	#include "Autolight.cginc"
-	#include "Shaders/CustomTessellation.cginc" // for the tesselation
+	#include "Shaders/CustomTessellation.cginc" // for the 
+	#define BLADE_SEGMENTS 3
 
 	
 
@@ -116,13 +117,23 @@ Shader "Roystan/Grass"
 	float2 _WindFrequency;
 	float _WindStrength;
 
+	//Re-usable function to generate a grass vertex
+	geometryOutput GenerateGrassVertex(float3 vertexPosition, float width, float height, float2 uv, float3x3 transformMatrix)
+	{
+		float3 tangentPoint = float3(width, 0, height);
+
+		float3 localPosition = vertexPosition + mul(transformMatrix, tangentPoint);
+		return VertexOutput(localPosition, uv);
+	}
+
 	/*	Declare a geometry shader named geo.
 		Parameters: - triangle float4 IN[3] : SV_POSITION; input a triangle defined by 3 points
 					- TriangleStream<geometryOutput> triStream; output a stream of triangles with the geometryOutput structure
 					- [maxvertexcount(3)]; we will emit a max of 3 vertices
 		
 	*/ 
-	[maxvertexcount(3)]
+	//[maxvertexcount(3)]
+	[maxvertexcount(BLADE_SEGMENTS * 2 + 1)]
 	//void geo(triangle float4 IN[3] : SV_POSITION, inout TriangleStream<geometryOutput> triStream)
 	void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triStream)
 	{
@@ -186,6 +197,24 @@ Shader "Roystan/Grass"
 		float height = (rand(pos.zyx) * 2 - 1) * _BladeHeightRandom + _BladeHeight;
 		float width = (rand(pos.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth;
 
+		//Base of the blade needs to stay attached to its surface during wind
+		float3x3 transformationMatrixFacing = mul(tangentToLocal, facingRotationMatrix);
+
+		//Blade segments
+		for (int i = 0; i < BLADE_SEGMENTS; i++)
+		{
+			float t = i / (float)BLADE_SEGMENTS;
+			float segmentHeight = height * t;
+			float segmentWidth = width * (1 - t);
+
+			float3x3 transformMatrix = i == 0 ? transformationMatrixFacing : transformationMatrix;
+
+			triStream.Append(GenerateGrassVertex(pos, segmentWidth, segmentHeight, float2(0, t), transformMatrix));
+			triStream.Append(GenerateGrassVertex(pos, -segmentWidth, segmentHeight, float2(1, t), transformMatrix));
+		}
+
+		triStream.Append(GenerateGrassVertex(pos, 0, height, float2(0.5, 1), transformationMatrix));
+
 		/*triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0)), float2(0, 0)));
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0)), float2(1, 0)));
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0, 0, 1)), float2(0.5, 1)));*/
@@ -200,11 +229,15 @@ Shader "Roystan/Grass"
 		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(-width, 0, 0)), float2(1, 0)));
 		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, height)), float2(0.5, 1)));*/
 
-		//Base of the blade needs to stay attached to its surface during wind
-		float3x3 transformationMatrixFacing = mul(tangentToLocal, facingRotationMatrix);
-		triStream.Append(VertexOutput(pos + mul(transformationMatrixFacing, float3(width, 0, 0)), float2(0, 0)));
+		
+		/*triStream.Append(VertexOutput(pos + mul(transformationMatrixFacing, float3(width, 0, 0)), float2(0, 0)));
 		triStream.Append(VertexOutput(pos + mul(transformationMatrixFacing, float3(-width, 0, 0)), float2(1, 0)));
-		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, height)), float2(0.5, 1)));
+		triStream.Append(VertexOutput(pos + mul(transformationMatrix, float3(0, 0, height)), float2(0.5, 1)));*/
+
+		// Outputting via the generate function.
+		/*triStream.Append(GenerateGrassVertex(pos, width, 0, float2(0, 0), transformationMatrixFacing));
+		triStream.Append(GenerateGrassVertex(pos, -width, 0, float2(1, 0), transformationMatrixFacing));
+		triStream.Append(GenerateGrassVertex(pos, 0, height, float2(0.5, 1), transformationMatrix));*/
 	}
 
 	ENDCG
