@@ -237,5 +237,29 @@ Shader "Roystan/Grass"
             }
             ENDCG
         }
+
+		Pass
+		{
+			Tags
+			{
+				"LightMode" = "ShadowCaster"
+			}
+
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma geometry geo
+			#pragma fragment frag
+			#pragma hull hull
+			#pragma domain domain
+			#pragma target 4.6
+			#pragma multi_compile_shadowcaster
+
+			float4 frag(geometryOutput i) : SV_Target
+			{
+				SHADOW_CASTER_FRAGMENT(i)
+			}
+
+			ENDCG
+		}
     }
 }
