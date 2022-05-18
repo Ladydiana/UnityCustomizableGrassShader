@@ -12,6 +12,9 @@ Shader "Roystan/Grass"
 		_BladeHeightRandom("Blade Height Random", Float) = 0.3
 		_BendRotationRandom("Bend Rotation Random", Range(0, 1)) = 0.2
 		_TessellationUniform("Tessellation Uniform", Range(1, 64)) = 1
+		_WindDistortionMap("Wind Distortion Map", 2D) = "white" {}
+		_WindFrequency("Wind Frequency", Vector) = (0.05, 0.05, 0, 0)
+		_WindStrength("Wind Strength", Float) = 1
     }
 
 	CGINCLUDE
@@ -102,6 +105,10 @@ Shader "Roystan/Grass"
 	float _BladeWidth;
 	float _BladeWidthRandom;
 	float _BendRotationRandom;
+	sampler2D _WindDistortionMap;
+	float4 _WindDistortionMap_ST;
+	float2 _WindFrequency;
+	float _WindStrength;
 
 	/*	Declare a geometry shader named geo.
 		Parameters: - triangle float4 IN[3] : SV_POSITION; input a triangle defined by 3 points
@@ -141,8 +148,15 @@ Shader "Roystan/Grass"
 		float3x3 facingRotationMatrix = AngleAxis3x3(rand(pos) * UNITY_TWO_PI, float3(0, 0, 1));
 		// With different direction
 		//float3x3 transformationMatrix = mul(tangentToLocal, facingRotationMatrix);
+		//uv for the wind
+		float2 uv = pos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
+		float2 windSample = (tex2Dlod(_WindDistortionMap, float4(uv, 0, 0)).xy * 2 - 1) * _WindStrength;
+		float3 wind = normalize(float3(windSample.x, windSample.y, 0));
+		float3x3 windRotation = AngleAxis3x3(UNITY_PI * windSample, wind);
 		//With direction and bend
-		float3x3 transformationMatrix = mul(mul(tangentToLocal, facingRotationMatrix), bendRotationMatrix);
+		//float3x3 transformationMatrix = mul(mul(tangentToLocal, facingRotationMatrix), bendRotationMatrix);
+		//With wind
+		float3x3 transformationMatrix = mul(mul(mul(tangentToLocal, windRotation), facingRotationMatrix), bendRotationMatrix);
 
 		
 		/*geometryOutput o;
