@@ -131,7 +131,7 @@ Shader "Roystan/Grass"
 		float3 tangentPoint = float3(width, forward, height);
 
 		// For the light
-		float3 tangentNormal = float3(0, -1, 0);
+		float3 tangentNormal = normalize(float3(0, -1, forward));
 		float3 localNormal = mul(transformMatrix, tangentNormal);
 
 		float3 localPosition = vertexPosition + mul(transformMatrix, tangentPoint);
@@ -298,7 +298,14 @@ Shader "Roystan/Grass"
 				//return lerp(_BottomColor, _TopColor, i.uv.y); //interpolating between top and bottom uv
 				//return SHADOW_ATTENUATION(i); //for the shadow
 				float3 normal = facing > 0 ? i.normal : -i.normal;
-				return float4(normal * 0.5 + 0.5, 1); // for the light
+				float shadow = SHADOW_ATTENUATION(i);
+				float NdotL = saturate(saturate(dot(normal, _WorldSpaceLightPos0)) + _TranslucentGain) * shadow;
+
+				float3 ambient = ShadeSH9(float4(normal, 1));
+				float4 lightIntensity = NdotL * _LightColor0 + float4(ambient, 1);
+				float4 col = lerp(_BottomColor, _TopColor * lightIntensity, i.uv.y);
+				//return float4(normal * 0.5 + 0.5, 1); // for the light
+				return col;
             }
             ENDCG
         }
