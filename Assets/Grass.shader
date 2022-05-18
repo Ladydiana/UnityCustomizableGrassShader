@@ -88,6 +88,7 @@ Shader "Roystan/Grass"
 		float4 pos : SV_POSITION;
 		// UV for the colors
 		float2 uv : TEXCOORD0;
+		unityShadowCoord4 _ShadowCoord : TEXCOORD1; //for the shadow collecting
 	};
 
 	// added UV for colors
@@ -96,6 +97,11 @@ Shader "Roystan/Grass"
 		geometryOutput o;
 		o.pos = UnityObjectToClipPos(pos);
 		o.uv = uv;
+		o._ShadowCoord = ComputeScreenPos(o.pos); //etrieve a float value representing whether the surface is in shadows or not
+		#if UNITY_PASS_SHADOWCASTER
+		// Applying the bias prevents artifacts from appearing on the surface.
+				o.pos = UnityApplyLinearShadowBias(o.pos);
+		#endif
 		return o;
 	}
 
@@ -222,6 +228,7 @@ Shader "Roystan/Grass"
 			#pragma target 4.6
 			#pragma hull hull
 			#pragma domain domain
+			#pragma multi_compile_fwdbase
             
 			#include "Lighting.cginc"
 
@@ -233,7 +240,8 @@ Shader "Roystan/Grass"
 			float4 frag(geometryOutput i, fixed facing : VFACE) : SV_Target // Added UV
             {	
 				//return float4(1, 1, 1, 1);
-				return lerp(_BottomColor, _TopColor, i.uv.y); //interpolating between top and bottom uv
+				//return lerp(_BottomColor, _TopColor, i.uv.y); //interpolating between top and bottom uv
+				return SHADOW_ATTENUATION(i); //for the shadow
             }
             ENDCG
         }
