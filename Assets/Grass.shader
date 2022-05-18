@@ -15,6 +15,8 @@ Shader "Roystan/Grass"
 		_WindDistortionMap("Wind Distortion Map", 2D) = "white" {}
 		_WindFrequency("Wind Frequency", Vector) = (0.05, 0.05, 0, 0)
 		_WindStrength("Wind Strength", Float) = 1
+		_BladeForward("Blade Forward Amount", Float) = 0.38
+		_BladeCurve("Blade Curvature Amount", Range(1, 4)) = 2
     }
 
 	CGINCLUDE
@@ -116,11 +118,13 @@ Shader "Roystan/Grass"
 	float4 _WindDistortionMap_ST;
 	float2 _WindFrequency;
 	float _WindStrength;
+	float _BladeForward;
+	float _BladeCurve;
 
 	//Re-usable function to generate a grass vertex
-	geometryOutput GenerateGrassVertex(float3 vertexPosition, float width, float height, float2 uv, float3x3 transformMatrix)
+	geometryOutput GenerateGrassVertex(float3 vertexPosition, float width, float height, float forward, float2 uv, float3x3 transformMatrix)
 	{
-		float3 tangentPoint = float3(width, 0, height);
+		float3 tangentPoint = float3(width, forward, height);
 
 		float3 localPosition = vertexPosition + mul(transformMatrix, tangentPoint);
 		return VertexOutput(localPosition, uv);
@@ -196,6 +200,7 @@ Shader "Roystan/Grass"
 		//Width and Height of a blade
 		float height = (rand(pos.zyx) * 2 - 1) * _BladeHeightRandom + _BladeHeight;
 		float width = (rand(pos.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth;
+		float forward = rand(pos.yyz) * _BladeForward;
 
 		//Base of the blade needs to stay attached to its surface during wind
 		float3x3 transformationMatrixFacing = mul(tangentToLocal, facingRotationMatrix);
@@ -206,14 +211,19 @@ Shader "Roystan/Grass"
 			float t = i / (float)BLADE_SEGMENTS;
 			float segmentHeight = height * t;
 			float segmentWidth = width * (1 - t);
+			float segmentForward = pow(t, _BladeCurve) * forward;
+
 
 			float3x3 transformMatrix = i == 0 ? transformationMatrixFacing : transformationMatrix;
 
-			triStream.Append(GenerateGrassVertex(pos, segmentWidth, segmentHeight, float2(0, t), transformMatrix));
-			triStream.Append(GenerateGrassVertex(pos, -segmentWidth, segmentHeight, float2(1, t), transformMatrix));
+			/*triStream.Append(GenerateGrassVertex(pos, segmentWidth, segmentHeight, float2(0, t), transformMatrix));
+			triStream.Append(GenerateGrassVertex(pos, -segmentWidth, segmentHeight, float2(1, t), transformMatrix));*/
+			triStream.Append(GenerateGrassVertex(pos, segmentWidth, segmentHeight, segmentForward, float2(0, t), transformMatrix));
+			triStream.Append(GenerateGrassVertex(pos, -segmentWidth, segmentHeight, segmentForward, float2(1, t), transformMatrix));
 		}
 
-		triStream.Append(GenerateGrassVertex(pos, 0, height, float2(0.5, 1), transformationMatrix));
+		//triStream.Append(GenerateGrassVertex(pos, 0, height, float2(0.5, 1), transformationMatrix));
+		triStream.Append(GenerateGrassVertex(pos, 0, height, forward, float2(0.5, 1), transformationMatrix));
 
 		/*triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(0.5, 0, 0)), float2(0, 0)));
 		triStream.Append(VertexOutput(pos + mul(tangentToLocal, float3(-0.5, 0, 0)), float2(1, 0)));
