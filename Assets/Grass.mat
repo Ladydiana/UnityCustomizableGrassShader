@@ -61,7 +61,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BendRotationRandom: 0.2
-    - _BladeCurve: 2
+    - _BladeCurve: 2.13
     - _BladeForward: 0.38
     - _BladeHeight: 0.5
     - _BladeHeightRandom: 0.3
