@@ -35,7 +35,7 @@ Shader "AmazingGrassShader"
 	
 
 	
-	// Returns a number in the [0, 1] range. Not the best solution, but it is actually really hard to generate random numbers in a shader
+	// Returns a number in the [0, 1] range.
 	float rand(float3 co)
 	{
 		return frac(sin( dot(co.xyz, float3(12.9898, 78.233, 53.539))) * 43758.5453);
@@ -78,6 +78,21 @@ Shader "AmazingGrassShader"
 		float3 normal : NORMAL; // for the light
 	};
 
+	// added UV for colors
+	geometryOutput VertexOutput(float3 pos, float2 uv, float3 normal)
+
+	{
+		geometryOutput o;
+		o.pos = UnityObjectToClipPos(pos);
+		o.uv = uv;
+		o._ShadowCoord = ComputeScreenPos(o.pos); //retrieve a float value representing whether the surface is in shadows or not
+		o.normal = UnityObjectToWorldNormal(normal); // for the light
+		#if UNITY_PASS_SHADOWCASTER
+		// Applying the bias prevents artifacts from appearing on the surface.
+				o.pos = UnityApplyLinearShadowBias(o.pos);
+		#endif
+		return o;
+	}
 
 
 	float _BladeHeight;
@@ -110,17 +125,13 @@ Shader "AmazingGrassShader"
 
 	}
 
-	/*	Geometry shader.
-		Parameters: - triangle float4 IN[3] : SV_POSITION; input a triangle defined by 3 points
-					- TriangleStream<geometryOutput> triStream; output a stream of triangles with the geometryOutput structure
-					- [maxvertexcount(3)]; we will emit a max of 3 vertices
-		
+	/*	geometry shader 
 	*/ 
-	//[maxvertexcount(3)]
+	
 	[maxvertexcount(BLADE_SEGMENTS * 2 + 1)]
+	
 	void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triStream)
 	{
-		
 		
 		float3 pos = IN[0].vertex;
 		float3 vNormal = IN[0].normal;
@@ -144,7 +155,6 @@ Shader "AmazingGrassShader"
 			// For the random rotation
 			// use the input position pos as the random seed for our rotation. This way, every blade will get a different rotation, but it will be consistent between frames.
 			float3x3 facingRotationMatrix = AngleAxis3x3(rand(pos) * UNITY_TWO_PI, float3(0, 0, 1));
-			
 			// With different direction
 			//uv for the wind
 			float2 uv = pos.xz * _WindDistortionMap_ST.xy + _WindDistortionMap_ST.zw + _WindFrequency * _Time.y;
@@ -177,12 +187,12 @@ Shader "AmazingGrassShader"
 
 				float3x3 transformMatrix = i == 0 ? transformationMatrixFacing : transformationMatrix;
 
-
+				
 				triStream.Append(GenerateGrassVertex(pos, segmentWidth, segmentHeight, segmentForward, float2(0, t), transformMatrix));
 				triStream.Append(GenerateGrassVertex(pos, -segmentWidth, segmentHeight, segmentForward, float2(1, t), transformMatrix));
 			}
 
-			//Top segment
+			
 			triStream.Append(GenerateGrassVertex(pos, 0, height, forward, float2(0.5, 1), transformationMatrix));
 
 			
@@ -224,7 +234,7 @@ Shader "AmazingGrassShader"
 			
 
 
-			
+	
 			float4 frag(geometryOutput i, fixed facing : VFACE) : SV_Target // Added UV
             {	
 				
@@ -251,11 +261,11 @@ Shader "AmazingGrassShader"
             ENDCG
         }
 
-		Pass //pass for the shadows
+		Pass
 		{
 			Tags
 			{
-				"LightMode" = "ShadowCaster"
+				"LightMode" = "ShadowCaster" //second pass for the shadows
 			}
 
 			CGPROGRAM
