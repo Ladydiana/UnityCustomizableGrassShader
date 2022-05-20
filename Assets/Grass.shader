@@ -3,8 +3,12 @@ Shader "Roystan/Grass"
     Properties
     {
 		[Header(Shading)]
+		[Toggle(FILL_WITH_RED)]
+		_DryGrassEnabled("Enable Dry Grass", Float) = 1
         _TopColor("Top Color", Color) = (1,1,1,1)
 		_BottomColor("Bottom Color", Color) = (1,1,1,1)
+		_DryTopColor("Dry Top Color", Color) = (1,1,1,1)
+		_DryBottomColor("Dry Bottom Color", Color) = (1,1,1,1)
 		_TranslucentGain("Translucent Gain", Range(0,1)) = 0.5
 		_BladeWidth("Blade Width", Float) = 0.05
 		_BladeWidthRandom("Blade Width Random", Float) = 0.02
@@ -30,14 +34,19 @@ Shader "Roystan/Grass"
 
 	
 
-	// Simple noise function, sourced from http://answers.unity.com/answers/624136/view.html
-	// Extended discussion on this function can be found at the following link:
-	// https://forum.unity.com/threads/am-i-over-complicating-this-random-function.454887/#post-2949326
-	// Returns a number in the 0...1 range.
+	
+	// Returns a number in the [0, 1] range.
 	float rand(float3 co)
 	{
-		return frac(sin(dot(co.xyz, float3(12.9898, 78.233, 53.539))) * 43758.5453);
+		return frac(sin( dot(co.xyz, float3(12.9898, 78.233, 53.539))) * 43758.5453);
 	}
+
+	//REALLY random. Use with care. Regenerates every render
+	float reallyRandom(float3 co) {
+		return frac(sin(_Time[0] * dot(co.xyz, float3(12.9898, 78.233, 53.539))) * 43758.5453);
+	}
+
+
 
 	// Construct a rotation matrix that rotates around the provided axis, sourced from:
 	// https://gist.github.com/keijiro/ee439d5e7388f3aafc5296005c8c3f33
@@ -300,8 +309,11 @@ Shader "Roystan/Grass"
 
 			float4 _TopColor;
 			float4 _BottomColor;
+			float4 _DryTopColor;
+			float4 _DryBottomColor;
 			float _TranslucentGain;
 			sampler2D _GrassTexture;
+			float _DryGrassEnabled;
 			
 
 
@@ -315,10 +327,18 @@ Shader "Roystan/Grass"
 				float shadow = SHADOW_ATTENUATION(i);
 				float NdotL = saturate(saturate(dot(normal, _WorldSpaceLightPos0)) + _TranslucentGain) * shadow;
 				float4 colorTexture = tex2D(_GrassTexture, i.uv);
+				float randoms = rand(facing);
 
 				float3 ambient = ShadeSH9(float4(normal, 1));
 				float4 lightIntensity = NdotL * _LightColor0 + float4(ambient, 1);
-				float4 color= colorTexture * lerp(_BottomColor, _TopColor * lightIntensity, i.uv.y);
+				float4 color;
+				if (_DryGrassEnabled == 1) {
+					if (randoms <= 0.75)
+						color = colorTexture * lerp(_BottomColor, _TopColor * lightIntensity, i.uv.y);
+					else
+						color = colorTexture * lerp(_DryBottomColor, _DryTopColor * lightIntensity, i.uv.y);
+				}
+				else color = colorTexture * lerp(_BottomColor, _TopColor * lightIntensity, i.uv.y);
 				//return float4(normal * 0.5 + 0.5, 1); // for the light
 				return color;
             }
