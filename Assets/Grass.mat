@@ -39,6 +39,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _GrassLoadMap:
+        m_Texture: {fileID: 2800000, guid: 237d9ca37577ed143a8ca0868211f8a4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -61,7 +65,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BendRotationRandom: 0.2
-    - _BladeCurve: 2
+    - _BladeCurve: 2.13
     - _BladeForward: 0.38
     - _BladeHeight: 0.5
     - _BladeHeightRandom: 0.3
@@ -76,6 +80,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _GrassThreshold: 0.5
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -86,7 +91,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _TessellationUniform: 10
-    - _TranslucentGain: 0.5
+    - _TranslucentGain: 0.495
     - _UVSec: 0
     - _WindScale: 1
     - _WindStrength: 0.5
