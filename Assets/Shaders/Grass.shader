@@ -29,7 +29,7 @@ Shader "AmazingGrassShader"
 	CGINCLUDE
 	#include "UnityCG.cginc"
 	#include "Autolight.cginc"
-	#include "Shaders/CustomTessellation.cginc" // for the tessellation
+	#include "CustomTessellation.cginc" // for the tessellation
 	#define BLADE_SEGMENTS 3
 
 	

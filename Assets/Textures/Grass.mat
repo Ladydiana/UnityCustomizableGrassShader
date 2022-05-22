@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Grass
   m_Shader: {fileID: 4800000, guid: 01eab4087a959ef4cbc34b8a3fba1e1f, type: 3}
-  m_ShaderKeywords: FILL_WITH_RED
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -71,7 +71,7 @@ Material:
     - _BendRotationRandom: 0.2
     - _BladeCurve: 2.13
     - _BladeForward: 0.38
-    - _BladeHeight: 0.75
+    - _BladeHeight: 1
     - _BladeHeightRandom: 0.3
     - _BladeRandomAmount: 0.5
     - _BladeSegments: 3
@@ -80,7 +80,7 @@ Material:
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DryGrassEnabled: 1
+    - _DryGrassEnabled: 0
     - _DstBlend: 0
     - _FillWithRed: 0
     - _GlossMapScale: 1
