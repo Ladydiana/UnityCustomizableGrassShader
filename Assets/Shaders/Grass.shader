@@ -133,10 +133,11 @@ Shader "AmazingGrassShader"
 	float4 GetCollisionVector(float3 pos, float3 realPointOfIntersection)
 	{
 		float3 collisionDiff = pos - realPointOfIntersection;
+		float closeness = (1.0 - saturate(length(collisionDiff) / _Collision.w));
 		return float4(
 			float3(normalize(collisionDiff).x,
 				0,
-				normalize(collisionDiff).z) * (1.0 - saturate(length(collisionDiff) / _Collision.w)),
+				normalize(collisionDiff).z) * closeness,
 			0);
 	}
 
@@ -208,7 +209,7 @@ Shader "AmazingGrassShader"
 				float3x3 transformMatrix = i == 0 ? transformationMatrixFacing : transformationMatrix;
 
 				if (i != 0) {
-					//collision detection with the ball, as long as the triangle is not at the base
+					//collision detection with the ball, as long as the vertex is not at the base
 					float3 collision = GetCollisionVector(pos, realPointOfIntersection);
 					pos += collision * _CollisionStrength;
 				}
