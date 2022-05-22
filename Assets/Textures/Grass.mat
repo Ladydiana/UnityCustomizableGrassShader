@@ -78,6 +78,7 @@ Material:
     - _BladeWidth: 0.01
     - _BladeWidthRandom: 0.02
     - _BumpScale: 1
+    - _CollisionStrength: 0.622
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DryGrassEnabled: 0
@@ -98,6 +99,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _TessellationUniform: 12
+    - _TrampleStrength: 0.2
     - _TranslucentGain: 0.39
     - _UVSec: 0
     - _WindScale: 1
@@ -105,6 +107,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BottomColor: {r: 0.061297283, g: 0.378, b: 0.07151349, a: 1}
+    - _Collision: {r: -0.785, g: 2.49, b: -0.90837425, a: 1}
     - _Color: {r: 0, g: 0.5754717, b: 0.06694827, a: 1}
     - _DryBottomColor: {r: 0.442037, g: 0.46226418, b: 0.10684408, a: 1}
     - _DryGrassBottomColor: {r: 1, g: 1, b: 1, a: 1}
@@ -112,4 +115,5 @@ Material:
     - _DryTopColor: {r: 0.7662466, g: 0.7924528, b: 0.2953008, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _TopColor: {r: 0.5792569, g: 0.84599996, b: 0.3297231, a: 1}
+    - _Trample: {r: 0, g: 0, b: 0, a: 0}
     - _WindFrequency: {r: 0.05, g: 0.05, b: 0, a: 0}
