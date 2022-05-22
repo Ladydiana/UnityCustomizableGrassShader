@@ -24,6 +24,9 @@ Shader "AmazingGrassShader"
 		_GrassLoadMap("Grass Load Map", 2D) = "white" {}
 		_GrassThreshold("Grass Visibility Threshold", Range(-0.1, 1)) = 0.5
 		_GrassTexture("Grass Texture", 2D) = "white" {}
+		[Header(Collision)]
+		_Collision("Collision", Vector) = (0, 0, 0, 0)
+		_CollisionStrength("Collision Strength", Range(0, 1)) = 0.2
     }
 
 	CGINCLUDE
@@ -109,6 +112,8 @@ Shader "AmazingGrassShader"
 	sampler2D _GrassLoadMap;
 	float4 _GrassLoadMap_ST;
 	float  _GrassThreshold;
+	float4 _Collision;
+	float _CollisionStrength;
 
 	//Re-usable function to generate a grass vertex
 	geometryOutput GenerateGrassVertex(float3 vertexPosition, float width, float height, float forward, float2 uv, float3x3 transformMatrix)
@@ -125,10 +130,20 @@ Shader "AmazingGrassShader"
 
 	}
 
+	float4 GetCollisionVector(float3 pos, float3 realPointOfIntersection)
+	{
+		float3 collisionDiff = pos - realPointOfIntersection;
+		return float4(
+			float3(normalize(collisionDiff).x,
+				0,
+				normalize(collisionDiff).z) * (1.0 - saturate(length(collisionDiff) / _Collision.w)),
+			0);
+	}
+
 	/*	geometry shader 
 	*/ 
 	
-	[maxvertexcount(BLADE_SEGMENTS * 2 + 1)]
+	[maxvertexcount(BLADE_SEGMENTS * 2 + 1)] 
 	
 	void geo(triangle vertexOutput IN[3], inout TriangleStream<geometryOutput> triStream)
 	{
@@ -172,9 +187,14 @@ Shader "AmazingGrassShader"
 			float height = (rand(pos.zyx) * 2 - 1) * _BladeHeightRandom + _BladeHeight;
 			float width = (rand(pos.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth;
 			float forward = rand(pos.yyz) * _BladeForward;
+			
 
 			//Base of the blade needs to stay attached to its surface during wind
 			float3x3 transformationMatrixFacing = mul(tangentToLocal, facingRotationMatrix);
+
+
+			//Get real point of intersection, based on global coordinates
+			float3 realPointOfIntersection = _Collision.xyz - mul(unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0));
 
 			//Blade segments
 			for (int i = 0; i < BLADE_SEGMENTS; i++)
@@ -187,12 +207,19 @@ Shader "AmazingGrassShader"
 
 				float3x3 transformMatrix = i == 0 ? transformationMatrixFacing : transformationMatrix;
 
+				if (i != 0) {
+					//collision detection with the ball, as long as the triangle is not at the base
+					float3 collision = GetCollisionVector(pos, realPointOfIntersection);
+					pos += collision * _CollisionStrength;
+				}
 				
 				triStream.Append(GenerateGrassVertex(pos, segmentWidth, segmentHeight, segmentForward, float2(0, t), transformMatrix));
 				triStream.Append(GenerateGrassVertex(pos, -segmentWidth, segmentHeight, segmentForward, float2(1, t), transformMatrix));
 			}
 
-			
+			//collision detection with the ball
+			float3 collision = GetCollisionVector(pos, realPointOfIntersection);
+			pos += collision * _CollisionStrength;
 			triStream.Append(GenerateGrassVertex(pos, 0, height, forward, float2(0.5, 1), transformationMatrix));
 
 			
